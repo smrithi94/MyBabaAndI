@@ -14,12 +14,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def get_secret(key):
-    """Works for both local .env and Streamlit Cloud secrets."""
     try:
         import streamlit as st
-        return st.secrets[key]
+        val = st.secrets.get(key)
+        if val:
+            return val
     except Exception:
-        return os.getenv(key)
+        pass
+    return os.getenv(key)
 
 # ── Configuration ──────────────────────────────────────────────────────────────
 CHROMA_HOST     = "api.trychroma.com"

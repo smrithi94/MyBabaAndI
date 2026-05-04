@@ -16,10 +16,13 @@ load_dotenv()
 def get_secret(key):
     try:
         import streamlit as st
-        return st.secrets[key]
+        val = st.secrets.get(key)
+        if val:
+            return val
     except Exception:
-        return os.getenv(key)
-
+        pass
+    return os.getenv(key)
+    
 SUPABASE_URL = get_secret("SUPABASE_URL")
 SUPABASE_KEY = get_secret("SUPABASE_KEY")
 
