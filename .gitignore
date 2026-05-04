@@ -1,0 +1,6 @@
+.env
+chunks.json
+__pycache__/
+*.pyc
+*.pdf
+.DS_Store
