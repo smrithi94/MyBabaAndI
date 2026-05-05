@@ -23,12 +23,6 @@ def get_secret(key):
 
 # ── Configuration ──────────────────────────────────────────────────────────────
 CHROMA_HOST     = "api.trychroma.com"
-CHROMA_API_KEY  = get_secret("CHROMA_API_KEY")
-CHROMA_TENANT   = get_secret("CHROMA_TENANT")
-CHROMA_DATABASE = get_secret("CHROMA_DATABASE")
-COLLECTION_NAME = get_secret("CHROMA_COLLECTION") or "spiritual-book"
-GROQ_API_KEY    = get_secret("GROQ_API_KEY")
-
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 GROQ_MODEL      = "meta-llama/llama-4-scout-17b-16e-instruct"
 TOP_K           = 2    # Number of pages to retrieve per question
@@ -43,6 +37,10 @@ def load_embedding_model():
     return model
 
 def load_collection():
+    CHROMA_API_KEY  = get_secret("CHROMA_API_KEY")
+    CHROMA_TENANT   = get_secret("CHROMA_TENANT")
+    CHROMA_DATABASE = get_secret("CHROMA_DATABASE")
+    COLLECTION_NAME = get_secret("CHROMA_COLLECTION") or "spiritual-book"
     client = chromadb.HttpClient(
         ssl=True,
         host=CHROMA_HOST,
@@ -94,6 +92,7 @@ ANSWER:"""
 
 def ask_groq(prompt: str) -> str:
     """Send the prompt to Groq and return the answer."""
+    GROQ_API_KEY    = get_secret("GROQ_API_KEY")
     client = Groq(api_key=GROQ_API_KEY)
     response = client.chat.completions.create(
         model=GROQ_MODEL,
