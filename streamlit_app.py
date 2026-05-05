@@ -12,6 +12,7 @@ from auth import sign_up, login
 from chat_store import save_message, load_sessions, load_session_messages, new_session_id, format_session_label
 
 st.set_page_config(page_title="My Baba And I — Q&A", page_icon="🙏", layout="wide")
+st.write(dict(st.secrets))
 
 st.markdown("""
 <style>
