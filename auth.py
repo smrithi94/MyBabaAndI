@@ -20,12 +20,11 @@ def get_secret(key):
     except Exception:
         return os.getenv(key)
 
-SUPABASE_URL = get_secret("SUPABASE_URL")
-SUPABASE_KEY = get_secret("SUPABASE_KEY")
-
 def get_supabase():
-    return create_client(SUPABASE_URL, SUPABASE_KEY)
-
+    url = get_secret("SUPABASE_URL")
+    key = get_secret("SUPABASE_KEY")
+    return create_client(url, key)
+    
 def hash_password(password: str) -> str:
     """Hash a password using SHA-256."""
     return hashlib.sha256(password.encode()).hexdigest()
