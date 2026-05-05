@@ -43,8 +43,6 @@ def load_embedding_model():
     return model
 
 def load_collection():
-    """Connect to ChromaDB Cloud and return the collection."""
-    print("🔗 Connecting to ChromaDB Cloud...")
     client = chromadb.HttpClient(
         ssl=True,
         host=CHROMA_HOST,
@@ -52,8 +50,7 @@ def load_collection():
         database=CHROMA_DATABASE,
         headers={"x-chroma-token": CHROMA_API_KEY}
     )
-    collection = client.get_collection(name=COLLECTION_NAME)
-    print(f"   ✅ Connected — collection has {collection.count()} chunks")
+    collection = client.get_or_create_collection(name=COLLECTION_NAME)
     return collection
 
 # ── Core RAG functions ─────────────────────────────────────────────────────────
