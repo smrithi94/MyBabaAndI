@@ -1,5 +1,5 @@
 streamlit
-chromadb
+chromadb==0.6.3
 groq
 sentence-transformers
 pymupdf
