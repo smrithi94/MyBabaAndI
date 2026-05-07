@@ -219,7 +219,7 @@ left_col, chat_col, right_col = st.columns([1, 2.5, 1])
 # ── LEFT COLUMN ────────────────────────────────────────────────────────────────
 with left_col:
     # Username
-   st.markdown(
+    st.markdown(
         "<div style='font-size:0.95rem;font-weight:600;margin-bottom:0.3rem;color:#1a73e8'>👤 "
         + st.session_state.username + "</div>",
         unsafe_allow_html=True
