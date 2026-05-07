@@ -98,7 +98,6 @@ if not st.session_state.logged_in:
         "<div style='text-align:center;padding:2.5rem 0 1.5rem'>"
         "<div style='font-size:3rem'>🙏</div>"
         "<div style='font-size:2rem;font-weight:700;color:#2C1A0E'>My Baba And I</div>"
-        "<div style='font-size:0.95rem;color:#8B6F5C;font-style:italic'>A spiritual companion for your education journey</div>"
         "</div>", unsafe_allow_html=True)
 
     _, col_center, _ = st.columns([1, 2, 1])
@@ -151,6 +150,7 @@ model, collection = load_resources()
 left_col, chat_col, right_col = st.columns([1, 2.5, 1])
 
 # ── LEFT — history ─────────────────────────────────────────────────────────────
+# ── LEFT COLUMN — history + controls ──────────────────────────────────────────
 with left_col:
     st.markdown("👤 **" + st.session_state.username + "**")
     st.markdown("<hr style='border-color:#4D3020;margin:0.3rem 0 0.8rem'>", unsafe_allow_html=True)
@@ -159,33 +159,39 @@ with left_col:
     if "show_history" not in st.session_state:
         st.session_state.show_history = True
 
-    # Toggle button
+    # Toggle button — looks like a section header
     toggle_label = "🕐 Chat History ▼" if st.session_state.show_history else "🕐 Chat History ▶"
     if st.button(toggle_label, use_container_width=True, key="toggle_history"):
         st.session_state.show_history = not st.session_state.show_history
         st.rerun()
 
+    # Scrollable list of ALL sessions — only visible when expanded
     if st.session_state.show_history:
         if not st.session_state.sessions:
-            st.markdown("<p class='panel-text' style='padding:0 0.5rem'>Your past chats will appear here.</p>", unsafe_allow_html=True)
+            st.markdown(
+                "<p class='panel-text' style='padding:0 0.5rem'>Your past chats will appear here.</p>",
+                unsafe_allow_html=True
+            )
         else:
-            recent_sessions = st.session_state.sessions[:5]
-            for session in recent_sessions:
-                label     = format_session_label(session)
-                is_active = session["session_id"] == st.session_state.session_id
-                btn_label = ("▶ " if is_active else "") + label
-                if st.button(btn_label, key="hist_" + session["session_id"], use_container_width=True):
-                    st.session_state.session_id = session["session_id"]
-                    st.session_state.messages   = load_session_messages(session["session_id"])
-                    st.session_state.sources    = []
-                    st.rerun()
+            with st.container(height=350):
+                for session in st.session_state.sessions:
+                    label     = format_session_label(session)
+                    is_active = session["session_id"] == st.session_state.session_id
+                    btn_label = ("▶ " if is_active else "") + label
+                    if st.button(btn_label, key="hist_" + session["session_id"], use_container_width=True):
+                        st.session_state.session_id = session["session_id"]
+                        st.session_state.messages   = load_session_messages(session["session_id"])
+                        st.session_state.sources    = []
+                        st.rerun()
 
     st.markdown("<hr style='border-color:#4D3020;margin:0.8rem 0'>", unsafe_allow_html=True)
+
     if st.button("➕  New Chat", use_container_width=True, key="new_chat"):
         st.session_state.session_id = new_session_id()
         st.session_state.messages   = []
         st.session_state.sources    = []
         st.rerun()
+
     if st.button("🚪  Logout", use_container_width=True, key="logout"):
         for k in ["logged_in", "username", "messages", "sources", "sessions"]:
             st.session_state[k] = False if k == "logged_in" else ([] if k in ["messages", "sources", "sessions"] else None)
@@ -215,48 +221,6 @@ with left_col:
     }
     </style>
     """, unsafe_allow_html=True)
-
-# ── MIDDLE — chat ──────────────────────────────────────────────────────────────
-with chat_col:
-    st.markdown(
-        "<div style='text-align:center;padding:1rem 0;border-bottom:1px solid #E8DDD0;margin-bottom:1.2rem'>"
-        "<div style='font-size:1.8rem;font-weight:700;color:#2C1A0E'>🙏 My Baba And I</div>"
-        "<div style='font-size:0.9rem;color:#8B6F5C;font-style:italic'>A spiritual companion — ask questions, explore the teachings</div>"
-        "</div>", unsafe_allow_html=True)
-
-    if not st.session_state.messages:
-        st.markdown(
-            "<div class='welcome-box'>"
-            "<div style='font-size:2.5rem;margin-bottom:0.8rem'>📚</div>"
-            "<div style='font-size:1.2rem;font-weight:600;color:#2C1A0E;margin-bottom:0.5rem'>Welcome to the Book Q&A</div>"
-            "<div style='font-size:0.9rem;color:#8B6F5C;line-height:1.6'>"
-            "Ask any question about <em>My Baba And I</em>.<br>"
-            "Answers are drawn directly from the pages of the book,<br>"
-            "with source page numbers shown on the right."
-            "</div></div>", unsafe_allow_html=True)
-
-    for msg in st.session_state.messages:
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
-
-    if question := st.chat_input("Ask a question about the book..."):
-        st.session_state.messages.append({"role": "user", "content": question})
-        with st.chat_message("user"):
-            st.markdown(question)
-        with st.chat_message("assistant"):
-            with st.spinner("Searching the book..."):
-                answer, chunks = get_answer(question, collection, model)
-            st.markdown(answer)
-        st.session_state.messages.append({"role": "assistant", "content": answer})
-        st.session_state.sources = chunks
-        save_message(st.session_state.username, question, answer, st.session_state.session_id)
-        st.session_state.sessions = load_sessions(st.session_state.username)
-        st.rerun()
-
-    st.markdown(
-        "<div class='disclaimer'>Answers are based solely on \"My Baba And I\". Always refer to the book for complete context.</div>",
-        unsafe_allow_html=True)
-
 # ── RIGHT — source pages ───────────────────────────────────────────────────────
 with right_col:
     st.markdown("<div class='panel-title'>📖 Source Pages</div>", unsafe_allow_html=True)
