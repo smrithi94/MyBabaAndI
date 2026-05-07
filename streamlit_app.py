@@ -98,7 +98,6 @@ if not st.session_state.logged_in:
         "<div style='text-align:center;padding:2.5rem 0 1.5rem'>"
         "<div style='font-size:3rem'>🙏</div>"
         "<div style='font-size:2rem;font-weight:700;color:#2C1A0E'>My Baba And I</div>"
-        "<div style='font-size:0.95rem;color:#8B6F5C;font-style:italic'>A spiritual companion for your education journey</div>"
         "</div>", unsafe_allow_html=True)
 
     _, col_center, _ = st.columns([1, 2, 1])
