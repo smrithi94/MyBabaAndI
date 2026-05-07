@@ -13,7 +13,6 @@ from chat_store import save_message, load_sessions, load_session_messages, new_s
 
 st.set_page_config(page_title="My Baba And I — Q&A", page_icon="🙏", layout="wide")
 
-
 st.markdown("""
 <style>
     #MainMenu {visibility: hidden;}
@@ -21,8 +20,55 @@ st.markdown("""
     header {visibility: hidden;}
     [data-testid="stSidebar"] {display: none;}
     .stApp { background-color: #FAF7F2; }
-    .block-container { padding-top: 0 !important; padding-bottom: 1rem !important; max-width: 100% !important; }
+    .block-container {
+        padding-top: 0 !important;
+        padding-bottom: 1rem !important;
+        max-width: 100% !important;
+    }
 
+    /* Left and right column dark background */
+    [data-testid="column"]:first-child {
+        background-color: #2C1A0E;
+        border-radius: 14px;
+        padding: 1rem !important;
+        min-height: 90vh;
+    }
+    [data-testid="column"]:first-child * {
+        color: #F5E6D3 !important;
+    }
+    [data-testid="column"]:last-child {
+        background-color: #2C1A0E;
+        border-radius: 14px;
+        padding: 1rem !important;
+        min-height: 90vh;
+    }
+    [data-testid="column"]:last-child * {
+        color: #F5E6D3 !important;
+    }
+
+    /* All buttons in left column */
+    [data-testid="column"]:first-child .stButton button {
+        background-color: transparent !important;
+        color: #F5E6D3 !important;
+        border: none !important;
+        text-align: left !important;
+        font-size: 0.82rem !important;
+        border-radius: 6px !important;
+        padding: 0.3rem 0.6rem !important;
+        width: 100% !important;
+    }
+    [data-testid="column"]:first-child .stButton button:hover {
+        background-color: #3D2410 !important;
+    }
+
+    /* Scrollable container inside left col */
+    [data-testid="column"]:first-child [data-testid="stVerticalBlockBorderWrapper"] {
+        background-color: #2C1A0E !important;
+        border: 1px solid #4D3020 !important;
+        border-radius: 8px !important;
+    }
+
+    /* Chat messages */
     [data-testid="stChatMessage"] {
         background-color: #FFFFFF;
         border: 1px solid #E8DDD0;
@@ -33,19 +79,11 @@ st.markdown("""
     }
     [data-testid="stChatMessage"] p,
     [data-testid="stChatMessage"] span,
-    [data-testid="stChatMessage"] div { color: #2C1A0E !important; }
-
-    .panel-title {
-        color: #C4A882 !important;
-        font-size: 0.8rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        border-bottom: 1px solid #4D3020;
-        padding-bottom: 0.4rem;
-        margin-bottom: 0.6rem;
+    [data-testid="stChatMessage"] div {
+        color: #2C1A0E !important;
     }
-    .panel-text { color: #A08070 !important; font-size: 0.82rem; }
+
+    /* Page badges */
     .page-badge {
         display: inline-block;
         background-color: #C4A882;
@@ -56,6 +94,21 @@ st.markdown("""
         border-radius: 20px;
         margin: 4px 4px 4px 0;
     }
+
+    /* Panel titles */
+    .panel-title {
+        color: #C4A882 !important;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-bottom: 1px solid #4D3020;
+        padding-bottom: 0.4rem;
+        margin-bottom: 0.8rem;
+    }
+    .panel-text { color: #A08070 !important; font-size: 0.82rem; }
+
+    /* Welcome box */
     .welcome-box {
         background: linear-gradient(135deg, #FFF8F0, #FFF2E6);
         border: 1px solid #E8DDD0;
@@ -64,6 +117,8 @@ st.markdown("""
         text-align: center;
         margin: 2rem auto;
     }
+
+    /* Disclaimer */
     .disclaimer {
         text-align: center;
         font-size: 0.75rem;
@@ -72,7 +127,12 @@ st.markdown("""
         padding-top: 0.8rem;
         border-top: 1px solid #E8DDD0;
     }
-    input[type="text"], input[type="password"] { background-color: #FFFFFF !important; color: #2C1A0E !important; }
+
+    /* Auth inputs */
+    input[type="text"], input[type="password"] {
+        background-color: #FFFFFF !important;
+        color: #2C1A0E !important;
+    }
     [data-testid="stTextInput"] label { color: #2C1A0E !important; }
     [data-testid="stTabs"] button { color: #2C1A0E !important; }
     h4 { color: #2C1A0E !important; }
@@ -81,23 +141,29 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# ── Cached resources ───────────────────────────────────────────────────────────
 @st.cache_resource(show_spinner="Loading knowledge base...")
 def load_resources():
-    return load_embedding_model(), load_collection()
+    model      = load_embedding_model()
+    collection = load_collection()
+    return model, collection
 
-if "logged_in"  not in st.session_state: st.session_state.logged_in  = False
-if "username"   not in st.session_state: st.session_state.username   = None
-if "messages"   not in st.session_state: st.session_state.messages   = []
-if "sources"    not in st.session_state: st.session_state.sources    = []
-if "session_id" not in st.session_state: st.session_state.session_id = new_session_id()
-if "sessions"   not in st.session_state: st.session_state.sessions   = []
+# ── Session state ──────────────────────────────────────────────────────────────
+if "logged_in"    not in st.session_state: st.session_state.logged_in    = False
+if "username"     not in st.session_state: st.session_state.username     = None
+if "messages"     not in st.session_state: st.session_state.messages     = []
+if "sources"      not in st.session_state: st.session_state.sources      = []
+if "session_id"   not in st.session_state: st.session_state.session_id   = new_session_id()
+if "sessions"     not in st.session_state: st.session_state.sessions     = []
+if "show_history" not in st.session_state: st.session_state.show_history = True
 
-# ── Auth ───────────────────────────────────────────────────────────────────────
+# ── Auth screen ────────────────────────────────────────────────────────────────
 if not st.session_state.logged_in:
     st.markdown(
         "<div style='text-align:center;padding:2.5rem 0 1.5rem'>"
         "<div style='font-size:3rem'>🙏</div>"
         "<div style='font-size:2rem;font-weight:700;color:#2C1A0E'>My Baba And I</div>"
+        "<div style='font-size:0.95rem;color:#8B6F5C;font-style:italic'>A spiritual companion for your education journey</div>"
         "</div>", unsafe_allow_html=True)
 
     _, col_center, _ = st.columns([1, 2, 1])
@@ -125,6 +191,7 @@ if not st.session_state.logged_in:
                         st.rerun()
                     else:
                         st.error(r["error"])
+
         with tab_signup:
             st.markdown("#### Create an account 🌟")
             st.caption("Join the spiritual education community")
@@ -144,34 +211,30 @@ if not st.session_state.logged_in:
                         st.error(r["error"])
     st.stop()
 
+# ── Logged in ──────────────────────────────────────────────────────────────────
 model, collection = load_resources()
-
-# ── 3-column layout ────────────────────────────────────────────────────────────
 left_col, chat_col, right_col = st.columns([1, 2.5, 1])
 
-# ── LEFT — history ─────────────────────────────────────────────────────────────
-# ── LEFT COLUMN — history + controls ──────────────────────────────────────────
+# ── LEFT COLUMN ────────────────────────────────────────────────────────────────
 with left_col:
-    st.markdown("👤 **" + st.session_state.username + "**")
+    # Username
+    st.markdown(
+        "<div style='font-size:0.95rem;font-weight:600;margin-bottom:0.3rem'>👤 "
+        + st.session_state.username + "</div>",
+        unsafe_allow_html=True
+    )
     st.markdown("<hr style='border-color:#4D3020;margin:0.3rem 0 0.8rem'>", unsafe_allow_html=True)
 
-    # Initialize history visibility toggle
-    if "show_history" not in st.session_state:
-        st.session_state.show_history = True
-
-    # Toggle button — looks like a section header
-    toggle_label = "🕐 Chat History ▼" if st.session_state.show_history else "🕐 Chat History ▶"
-    if st.button(toggle_label, use_container_width=True, key="toggle_history"):
+    # Toggle button
+    toggle_icon = "▼" if st.session_state.show_history else "▶"
+    if st.button(f"🕐 Chat History {toggle_icon}", use_container_width=True, key="toggle_history"):
         st.session_state.show_history = not st.session_state.show_history
         st.rerun()
 
-    # Scrollable list of ALL sessions — only visible when expanded
+    # Scrollable history list
     if st.session_state.show_history:
         if not st.session_state.sessions:
-            st.markdown(
-                "<p class='panel-text' style='padding:0 0.5rem'>Your past chats will appear here.</p>",
-                unsafe_allow_html=True
-            )
+            st.markdown("<p class='panel-text'>Your past chats will appear here.</p>", unsafe_allow_html=True)
         else:
             with st.container(height=350):
                 for session in st.session_state.sessions:
@@ -193,35 +256,56 @@ with left_col:
         st.rerun()
 
     if st.button("🚪  Logout", use_container_width=True, key="logout"):
-        for k in ["logged_in", "username", "messages", "sources", "sessions"]:
-            st.session_state[k] = False if k == "logged_in" else ([] if k in ["messages", "sources", "sessions"] else None)
+        st.session_state.logged_in  = False
+        st.session_state.username   = None
+        st.session_state.messages   = []
+        st.session_state.sources    = []
+        st.session_state.sessions   = []
         st.session_state.session_id = new_session_id()
         st.rerun()
 
-    st.markdown("""
-    <style>
-    [data-testid="column"]:first-child .stButton button {
-        background-color: transparent !important;
-        color: #F5E6D3 !important;
-        border: none !important;
-        text-align: left !important;
-        font-size: 0.82rem !important;
-        border-radius: 6px !important;
-    }
-    [data-testid="column"]:first-child .stButton button:hover {
-        background-color: #3D2410 !important;
-    }
-    [data-testid="column"]:first-child {
-        background-color: #2C1A0E;
-        border-radius: 14px;
-        padding: 1rem !important;
-    }
-    [data-testid="column"]:first-child * {
-        color: #F5E6D3 !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-# ── RIGHT — source pages ───────────────────────────────────────────────────────
+# ── MIDDLE COLUMN — chat ───────────────────────────────────────────────────────
+with chat_col:
+    st.markdown(
+        "<div style='text-align:center;padding:1rem 0;border-bottom:1px solid #E8DDD0;margin-bottom:1.2rem'>"
+        "<div style='font-size:1.8rem;font-weight:700;color:#2C1A0E'>🙏 My Baba And I</div>"
+        "<div style='font-size:0.9rem;color:#8B6F5C;font-style:italic'>A spiritual companion — ask questions, explore the teachings</div>"
+        "</div>", unsafe_allow_html=True)
+
+    if not st.session_state.messages:
+        st.markdown(
+            "<div class='welcome-box'>"
+            "<div style='font-size:2.5rem;margin-bottom:0.8rem'>📚</div>"
+            "<div style='font-size:1.2rem;font-weight:600;color:#2C1A0E;margin-bottom:0.5rem'>Welcome to the Book Q&A</div>"
+            "<div style='font-size:0.9rem;color:#8B6F5C;line-height:1.6'>"
+            "Ask any question about <em>My Baba And I</em>.<br>"
+            "Answers are drawn directly from the pages of the book,<br>"
+            "with source page numbers shown on the right."
+            "</div></div>", unsafe_allow_html=True)
+
+    for msg in st.session_state.messages:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+
+    if question := st.chat_input("Ask a question about the book..."):
+        st.session_state.messages.append({"role": "user", "content": question})
+        with st.chat_message("user"):
+            st.markdown(question)
+        with st.chat_message("assistant"):
+            with st.spinner("Searching the book..."):
+                answer, chunks = get_answer(question, collection, model)
+            st.markdown(answer)
+        st.session_state.messages.append({"role": "assistant", "content": answer})
+        st.session_state.sources = chunks
+        save_message(st.session_state.username, question, answer, st.session_state.session_id)
+        st.session_state.sessions = load_sessions(st.session_state.username)
+        st.rerun()
+
+    st.markdown(
+        "<div class='disclaimer'>Answers are based solely on \"My Baba And I\". Always refer to the book for complete context.</div>",
+        unsafe_allow_html=True)
+
+# ── RIGHT COLUMN — source pages ────────────────────────────────────────────────
 with right_col:
     st.markdown("<div class='panel-title'>📖 Source Pages</div>", unsafe_allow_html=True)
 
@@ -231,14 +315,3 @@ with right_col:
         pages = sorted(set(c["book_page"] for c in st.session_state.sources))
         badges = "".join("<span class='page-badge'>Page " + str(p) + "</span>" for p in pages)
         st.markdown(badges, unsafe_allow_html=True)
-        
-    st.markdown("""
-    <style>
-    [data-testid="column"]:last-child {
-        background-color: #2C1A0E;
-        border-radius: 14px;
-        padding: 1rem !important;
-    }
-    [data-testid="column"]:last-child * { color: #F5E6D3 !important; }
-    </style>
-    """, unsafe_allow_html=True)
