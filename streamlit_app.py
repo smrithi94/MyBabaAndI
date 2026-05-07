@@ -33,8 +33,11 @@ st.markdown("""
         padding: 1rem !important;
         min-height: 90vh;
     }
-    [data-testid="column"]:first-child * {
+   [data-testid="column"]:first-child * {
         color: #F5E6D3 !important;
+    }
+    [data-testid="column"]:first-child .username-text {
+        color: #000000 !important;
     }
     [data-testid="column"]:last-child {
         background-color: #2C1A0E;
@@ -163,14 +166,12 @@ if not st.session_state.logged_in:
         "<div style='text-align:center;padding:2.5rem 0 1.5rem'>"
         "<div style='font-size:3rem'>🙏</div>"
         "<div style='font-size:2rem;font-weight:700;color:#2C1A0E'>My Baba And I</div>"
-        "<div style='font-size:0.95rem;color:#8B6F5C;font-style:italic'>A spiritual companion for your education journey</div>"
         "</div>", unsafe_allow_html=True)
 
     _, col_center, _ = st.columns([1, 2, 1])
     with col_center:
         tab_login, tab_signup = st.tabs(["🔑  Login", "✨  Sign Up"])
         with tab_login:
-            st.markdown("#### Welcome back 🙏")
             st.caption("Login to continue your journey")
             st.markdown("")
             lu = st.text_input("Username", key="lu", placeholder="Enter your username")
@@ -218,8 +219,8 @@ left_col, chat_col, right_col = st.columns([1, 2.5, 1])
 # ── LEFT COLUMN ────────────────────────────────────────────────────────────────
 with left_col:
     # Username
-    st.markdown(
-        "<div style='font-size:0.95rem;font-weight:600;margin-bottom:0.3rem'>👤 "
+   st.markdown(
+        "<div style='font-size:0.95rem;font-weight:600;margin-bottom:0.3rem;color:#1a73e8'>👤 "
         + st.session_state.username + "</div>",
         unsafe_allow_html=True
     )
