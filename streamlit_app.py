@@ -152,15 +152,25 @@ left_col, chat_col, right_col = st.columns([1, 2.5, 1])
 
 # ── LEFT — history ─────────────────────────────────────────────────────────────
 with left_col:
+    st.markdown("👤 **" + st.session_state.username + "**")
+    st.markdown("<hr style='border-color:#4D3020;margin:0.3rem 0 0.8rem'>", unsafe_allow_html=True)
 
-        st.markdown("👤 **" + st.session_state.username + "**")
-        st.markdown("<hr style='border-color:#4D3020;margin:0.3rem 0 0.8rem'>", unsafe_allow_html=True)
-        st.markdown("<div class='panel-title'>🕐 Chat History</div>", unsafe_allow_html=True)
+    # Initialize history visibility toggle
+    if "show_history" not in st.session_state:
+        st.session_state.show_history = True
 
+    # Toggle button
+    toggle_label = "🕐 Chat History ▼" if st.session_state.show_history else "🕐 Chat History ▶"
+    if st.button(toggle_label, use_container_width=True, key="toggle_history"):
+        st.session_state.show_history = not st.session_state.show_history
+        st.rerun()
+
+    if st.session_state.show_history:
         if not st.session_state.sessions:
             st.markdown("<p class='panel-text' style='padding:0 0.5rem'>Your past chats will appear here.</p>", unsafe_allow_html=True)
         else:
-            for session in st.session_state.sessions:
+            recent_sessions = st.session_state.sessions[:5]
+            for session in recent_sessions:
                 label     = format_session_label(session)
                 is_active = session["session_id"] == st.session_state.session_id
                 btn_label = ("▶ " if is_active else "") + label
@@ -170,42 +180,41 @@ with left_col:
                     st.session_state.sources    = []
                     st.rerun()
 
-        st.markdown("<hr style='border-color:#4D3020;margin:0.8rem 0'>", unsafe_allow_html=True)
-        if st.button("➕  New Chat", use_container_width=True, key="new_chat"):
-            st.session_state.session_id = new_session_id()
-            st.session_state.messages   = []
-            st.session_state.sources    = []
-            st.rerun()
-        if st.button("🚪  Logout", use_container_width=True, key="logout"):
-            for k in ["logged_in","username","messages","sources","sessions"]:
-                st.session_state[k] = False if k == "logged_in" else ([] if k in ["messages","sources","sessions"] else None)
-            st.session_state.session_id = new_session_id()
-            st.rerun()
+    st.markdown("<hr style='border-color:#4D3020;margin:0.8rem 0'>", unsafe_allow_html=True)
+    if st.button("➕  New Chat", use_container_width=True, key="new_chat"):
+        st.session_state.session_id = new_session_id()
+        st.session_state.messages   = []
+        st.session_state.sources    = []
+        st.rerun()
+    if st.button("🚪  Logout", use_container_width=True, key="logout"):
+        for k in ["logged_in", "username", "messages", "sources", "sessions"]:
+            st.session_state[k] = False if k == "logged_in" else ([] if k in ["messages", "sources", "sessions"] else None)
+        st.session_state.session_id = new_session_id()
+        st.rerun()
 
-        # Style the buttons inside left col
-        st.markdown("""
-        <style>
-        [data-testid="column"]:first-child .stButton button {
-            background-color: transparent !important;
-            color: #F5E6D3 !important;
-            border: none !important;
-            text-align: left !important;
-            font-size: 0.82rem !important;
-            border-radius: 6px !important;
-        }
-        [data-testid="column"]:first-child .stButton button:hover {
-            background-color: #3D2410 !important;
-        }
-        [data-testid="column"]:first-child {
-            background-color: #2C1A0E;
-            border-radius: 14px;
-            padding: 1rem !important;
-        }
-        [data-testid="column"]:first-child * {
-            color: #F5E6D3 !important;
-        }
-        </style>
-        """, unsafe_allow_html=True)
+    st.markdown("""
+    <style>
+    [data-testid="column"]:first-child .stButton button {
+        background-color: transparent !important;
+        color: #F5E6D3 !important;
+        border: none !important;
+        text-align: left !important;
+        font-size: 0.82rem !important;
+        border-radius: 6px !important;
+    }
+    [data-testid="column"]:first-child .stButton button:hover {
+        background-color: #3D2410 !important;
+    }
+    [data-testid="column"]:first-child {
+        background-color: #2C1A0E;
+        border-radius: 14px;
+        padding: 1rem !important;
+    }
+    [data-testid="column"]:first-child * {
+        color: #F5E6D3 !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 # ── MIDDLE — chat ──────────────────────────────────────────────────────────────
 with chat_col:
